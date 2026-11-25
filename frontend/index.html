@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MultiCode - Online Compiler</title>
+
+    <meta
+        name="description"
+        content="MultiCode is an online programming environment for writing and executing code in multiple programming languages."
+    >
+
+    <meta name="theme-color" content="#111827">
+</head>
+
+<body>
+
+    <!-- Main Header -->
+    <header class="top-bar">
+
+        <div class="logo">
+            <span class="logo-icon">&lt;/&gt;</span>
+            <h1>MultiCode</h1>
+        </div>
+
+        <div class="header-actions">
+
+            <span class="header-label">Online Compiler</span>
+
+            <button
+                id="snippets-button"
+                class="secondary-button"
+                type="button"
+            >
+                My Snippets
+            </button>
+
+            <button
+                id="theme-button"
+                class="theme-button"
+                type="button"
+                title="Toggle theme"
+                aria-label="Toggle theme"
+            >
+                ☀
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- Main Workspace -->
+    <main class="workspace">
+
+        <!-- Editor Section -->
+        <section class="editor-section">
+
+            <!-- Editor Toolbar -->
+            <div class="editor-toolbar">
+
+                <div class="editor-controls">
+
+                    <label for="language">Language:</label>
+
+                    <select id="language">
+                        <option value="cpp">C++</option>
+                        <option value="c">C</option>
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                        <option value="javascript">JavaScript</option>
+                    </select>
+
+                </div>
+
+                <div class="editor-actions">
+
+                    <button
+                        id="reset-button"
+                        class="reset-button"
+                        type="button"
+                    >
+                        Reset
+                    </button>
+
+                    <button
+                        id="save-button"
+                        class="save-button"
+                        type="button"
+                    >
+                        Save
+                    </button>
+
+                    <button
+                        id="update-button"
+                        class="update-button"
+                        type="button"
+                        hidden
+                    >
+                        Update
+                    </button>
+
+                    <button
+                        id="run-button"
+                        class="run-button"
+                        type="button"
+                    >
+                        ▶ Run Code
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- Editor Heading -->
+            <div class="editor-heading">
+
+                <span id="editor-language-label">C++</span>
+
+                <span class="editor-file-name">main</span>
+
+            </div>
+
+
+            <!-- Monaco Editor -->
+            <div id="editor"></div>
+
+
+            <!-- Editor Footer -->
+            <div class="editor-footer">
+
+                <span>MultiCode Editor</span>
+
+                <span>Ready</span>
+
+            </div>
+
+        </section>
+
+
+        <!-- Side Panel -->
+        <aside class="side-panel">
+
+            <!-- Panel Tabs -->
+            <div class="panel-tabs">
+
+                <button
+                    class="panel-tab active"
+                    type="button"
+                    data-tab="input-panel"
+                >
+                    Input
+                </button>
+
+                <button
+                    class="panel-tab"
+                    type="button"
+                    data-tab="output-panel"
+                >
+                    Output
+                </button>
+
+                <button
+                    class="panel-tab"
+                    type="button"
+                    data-tab="terminal-panel"
+                >
+                    Terminal
+                </button>
+
+            </div>
+
+
+            <!-- Execution Status -->
+            <div class="execution-status-container">
+
+                <span id="execution-status" class="status-badge">
+                    Ready
+                </span>
+
+            </div>
+
+
+            <!-- Input Panel -->
+            <section
+                id="input-panel"
+                class="panel-content active"
+            >
+
+                <div class="panel-heading">
+
+                    <h2>Custom Input</h2>
+
+                    <span>stdin</span>
+
+                </div>
+
+                <textarea
+                    id="custom-input"
+                    placeholder="Enter your input here..."
+                    spellcheck="false"
+                ></textarea>
+
+                <p class="panel-description">
+                    Provide input that your program will receive during execution.
+                </p>
+
+            </section>
+
+
+            <!-- Output Panel -->
+            <section
+                id="output-panel"
+                class="panel-content"
+                hidden
+            >
+
+                <div class="panel-heading">
+
+                    <h2>Program Output</h2>
+
+                    <span>stdout</span>
+
+                </div>
+
+                <pre id="output">Your program output will appear here...</pre>
+
+                <div class="execution-stats">
+
+                    <span>Execution time</span>
+                    <strong id="execution-time">—</strong>
+
+                    <span>Container peak memory</span>
+                    <strong id="memory-usage">—</strong>
+
+                </div>
+
+            </section>
+
+
+            <!-- Terminal Panel -->
+            <section
+                id="terminal-panel"
+                class="panel-content"
+                hidden
+            >
+
+                <div class="panel-heading">
+
+                    <h2>Execution Logs</h2>
+
+                    <span>Terminal</span>
+
+                </div>
+
+                <pre id="terminal">MultiCode terminal initialized.
+Waiting for execution...</pre>
+
+            </section>
+
+        </aside>
+
+    </main>
+
+
+    <!-- Snippet Manager Dialog -->
+    <dialog id="snippets-dialog" class="snippets-dialog">
+
+        <div class="dialog-header">
+
+            <div>
+                <h2>My Snippets</h2>
+
+                <p>Manage your saved programs.</p>
+            </div>
+
+            <button
+                id="close-snippets-button"
+                class="close-dialog-button"
+                type="button"
+                aria-label="Close snippets"
+            >
+                &times;
+            </button>
+
+        </div>
+
+
+        <!-- Save New Snippet -->
+        <section class="snippet-save-section">
+
+            <h3>Save Current Program</h3>
+
+            <form id="snippet-save-form">
+
+                <label for="snippet-name">
+                    Program name
+                </label>
+
+                <div class="snippet-save-controls">
+
+                    <input
+                        id="snippet-name"
+                        type="text"
+                        maxlength="100"
+                        placeholder="e.g. Binary Search"
+                        required
+                    >
+
+                    <button
+                        type="submit"
+                        id="save-snippet-button"
+                    >
+                        Save Code
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <!-- Snippet Messages -->
+        <p
+            id="snippet-message"
+            class="snippet-message"
+            role="status"
+        ></p>
+
+
+        <!-- Saved Snippets -->
+        <section class="saved-snippets-section">
+
+            <div class="snippet-list-header">
+
+                <h3>Saved Programs</h3>
+
+                <button
+                    id="refresh-snippets-button"
+                    type="button"
+                    class="refresh-button"
+                >
+                    ↻ Refresh
+                </button>
+
+            </div>
+
+            <div id="snippets-list" class="snippets-list">
+
+                <p class="empty-snippets">
+                    Your saved programs will appear here.
+                </p>
+
+            </div>
+
+        </section>
+
+    </dialog>
+
+
+    <!-- Footer -->
+    <footer class="app-footer">
+
+        <span>MultiCode Online Compiler</span>
+
+        <span>Built for developers</span>
+
+    </footer>
+
+
+    <!-- Application Entry Point -->
+    <script type="module" src="/src/main.js"></script>
+
+</body>
+
+</html>
