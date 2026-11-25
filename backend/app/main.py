@@ -1,10 +1,12 @@
+import os
+import shutil
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func
-import shutil
 
 from app.database import Base, engine, get_db
 from app.models import Snippet
@@ -17,6 +19,8 @@ from app.executor import (
     run_java,
     run_javascript
 )
+
+from app.online_executor import run_online
 
 
 # Create database tables when the application starts
@@ -40,11 +44,12 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "https://multicode-93sh.onrender.com"
-        ],
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # BASIC ROUTES
 
@@ -62,48 +67,71 @@ def health():
         "status": "healthy"
     }
 
+
 # CODE EXECUTION
 
 @app.post("/run")
 def run_code(data: dict):
 
-    # Check whether Docker is installed
-    if shutil.which("docker") is None:
-        raise HTTPException(
-            status_code=503,
-            detail="Code execution is temporarily unavailable. The execution service has not been deployed yet."
-        )
-
     source_code = data.get("code", "")
     language = data.get("language", "")
     custom_input = data.get("input", "")
 
-    if language == "cpp":
-        result = run_cpp(source_code, custom_input)
+    supported_languages = [
+        "c",
+        "cpp",
+        "python",
+        "java",
+        "javascript"
+    ]
 
-    elif language == "c":
-        result = run_c(source_code, custom_input)
-
-    elif language == "python":
-        result = run_python(source_code, custom_input)
-
-    elif language == "java":
-        result = run_java(source_code, custom_input)
-
-    elif language == "javascript":
-        result = run_javascript(source_code, custom_input)
-
-    else:
+    if language not in supported_languages:
         raise HTTPException(
             status_code=400,
             detail=f"Language '{language}' is not supported."
         )
 
+    # Use OnlineCompiler on Render.
+    if os.getenv("ONLINECOMPILER_API_KEY"):
+
+        result = run_online(
+            source_code=source_code,
+            custom_input=custom_input,
+            language=language
+        )
+
+    # Use local Docker execution on Ubuntu.
+    else:
+
+        if shutil.which("docker") is None:
+            raise HTTPException(
+                status_code=503,
+                detail="Docker is not installed. Code execution is unavailable."
+            )
+
+        if language == "cpp":
+            result = run_cpp(source_code, custom_input)
+
+        elif language == "c":
+            result = run_c(source_code, custom_input)
+
+        elif language == "python":
+            result = run_python(source_code, custom_input)
+
+        elif language == "java":
+            result = run_java(source_code, custom_input)
+
+        elif language == "javascript":
+            result = run_javascript(source_code, custom_input)
+
     return {
         "language": language,
         **result
     }
+
+
 # SNIPPET MANAGEMENT
+
 
 # CREATE SNIPPET
 @app.post(
