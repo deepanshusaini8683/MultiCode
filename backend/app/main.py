@@ -4,6 +4,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func
+import shutil
 
 from app.database import Base, engine, get_db
 from app.models import Snippet
@@ -66,6 +67,13 @@ def health():
 @app.post("/run")
 def run_code(data: dict):
 
+    # Check whether Docker is installed
+    if shutil.which("docker") is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Code execution is temporarily unavailable. The execution service has not been deployed yet."
+        )
+
     source_code = data.get("code", "")
     language = data.get("language", "")
     custom_input = data.get("input", "")
@@ -86,16 +94,15 @@ def run_code(data: dict):
         result = run_javascript(source_code, custom_input)
 
     else:
-        return {
-            "status": "error",
-            "output": f"Language '{language}' is not supported."
-        }
+        raise HTTPException(
+            status_code=400,
+            detail=f"Language '{language}' is not supported."
+        )
 
     return {
         "language": language,
         **result
     }
-
 # SNIPPET MANAGEMENT
 
 # CREATE SNIPPET
