@@ -1,7 +1,6 @@
 import * as monaco from "monaco-editor";
-import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
+import EditorWorker from "../node_modules/monaco-editor/esm/vs/editor/editor.worker.js?worker";
 
-// Configure Monaco workers for Vite
 globalThis.MonacoEnvironment = {
     getWorker() {
         return new EditorWorker();
